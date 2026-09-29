@@ -93,6 +93,111 @@
             transform: translateY(0);
         }
 
+        .typing-card {
+            display: block;
+            width: min(150px, 90vw);
+            margin: 22px auto 0;
+            padding: 14px 26px;
+            color: #e8d9f0;
+            text-decoration: none;
+            border: 1px solid #b88bd0;
+            border-radius: 10px;
+            background: rgba(184, 139, 208, 0.04);
+            box-shadow: 0 0 12px rgba(184, 139, 208, 0.08), inset 0 0 12px rgba(184, 139, 208, 0.02);
+            transition: width 0.3s ease, transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+            overflow: hidden;
+        }
+
+        .typing-card:hover,
+        .typing-card:focus-visible {
+            width: min(430px, 90vw);
+            transform: translateY(-2px);
+            background: rgba(184, 139, 208, 0.09);
+            box-shadow: 0 0 24px rgba(184, 139, 208, 0.2), inset 0 0 15px rgba(184, 139, 208, 0.04);
+        }
+
+        .typing-title {
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        .typing-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-height: 0;
+            margin-top: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, margin-top 0.3s ease, opacity 0.25s ease;
+        }
+
+        .typing-card:hover .typing-stats,
+        .typing-card:focus-visible .typing-stats {
+            max-height: 120px;
+            margin-top: 18px;
+            opacity: 1;
+        }
+
+        /* Sur mobile : un tap sur la partie haute ouvre/ferme les stats.
+           La partie basse reste un lien vers Monkeytype. */
+        @media (hover: none) and (pointer: coarse) {
+            .typing-card.mobile-open {
+                width: min(430px, 90vw);
+                transform: translateY(-2px);
+                background: rgba(184, 139, 208, 0.09);
+                box-shadow: 0 0 24px rgba(184, 139, 208, 0.2), inset 0 0 15px rgba(184, 139, 208, 0.04);
+            }
+
+            .typing-card.mobile-open .typing-stats {
+                max-height: 120px;
+                margin-top: 18px;
+                opacity: 1;
+            }
+
+            .typing-card.mobile-open .typing-title {
+                cursor: pointer;
+            }
+        }
+
+        .typing-stat {
+            padding: 10px 6px;
+            border: 1px solid rgba(184, 139, 208, 0.22);
+            border-radius: 9px;
+            background: rgba(0, 0, 0, 0.12);
+            text-align: center;
+        }
+
+        .typing-stat-label {
+            color: #a99eae;
+            font-size: 0.72rem;
+        }
+
+        .typing-stat-value {
+            margin-top: 3px;
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .typing-extra {
+            grid-column: 1 / -1;
+            color: #a99eae;
+            font-size: 0.76rem;
+            text-align: center;
+        }
+
+        @media (max-width: 520px) {
+            .typing-card:hover,
+            .typing-card:focus-visible {
+                width: min(90vw, 430px);
+            }
+
+            .typing-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -118,7 +223,99 @@
         >
             CV en ligne
         </a>
+
+        <a
+            class="typing-card"
+            href="https://monkeytype.com/profile/devilsnode"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-expanded="false"
+        >
+            <div class="typing-title">Dactylo</div>
+
+            <div class="typing-stats" aria-label="Statistiques Monkeytype">
+                <div class="typing-stat">
+                    <div class="typing-stat-label">15s</div>
+                    <div class="typing-stat-value" id="typing-15">—</div>
+                </div>
+                <div class="typing-stat">
+                    <div class="typing-stat-label">30s</div>
+                    <div class="typing-stat-value" id="typing-30">—</div>
+                </div>
+                <div class="typing-stat">
+                    <div class="typing-stat-label">60s</div>
+                    <div class="typing-stat-value" id="typing-60">—</div>
+                </div>
+                <div class="typing-stat">
+                    <div class="typing-stat-label">120s</div>
+                    <div class="typing-stat-value" id="typing-120">—</div>
+                </div>
+                <div class="typing-extra" id="typing-total">Chargement des statistiques…</div>
+            </div>
+        </a>
     </main>
+
+
+    <script>
+        const typingStats = {
+            "15": document.getElementById("typing-15"),
+            "30": document.getElementById("typing-30"),
+            "60": document.getElementById("typing-60"),
+            "120": document.getElementById("typing-120"),
+        };
+        const typingTotal = document.getElementById("typing-total");
+        const typingCard = document.querySelector(".typing-card");
+        const typingTitle = document.querySelector(".typing-title");
+
+        // Sur mobile : moitié haute = ouvrir/fermer, moitié basse = lien Monkeytype.
+        if (window.matchMedia("(hover: none) and (pointer: coarse)").matches) {
+            typingCard.addEventListener("click", event => {
+                const rect = typingCard.getBoundingClientRect();
+                const middle = rect.top + rect.height / 2;
+
+                if (event.clientY <= middle) {
+                    event.preventDefault();
+                    const open = typingCard.classList.toggle("mobile-open");
+                    typingCard.setAttribute("aria-expanded", String(open));
+                }
+            });
+        }
+
+        fetch("https://api.monkeytype.com/users/devilsnode/profile")
+            .then(response => {
+                if (!response.ok) throw new Error("Monkeytype API indisponible");
+                return response.json();
+            })
+            .then(({ data }) => {
+                const timePBs = data?.personalBests?.time || {};
+
+                ["15", "30", "60", "120"].forEach(seconds => {
+                    const entries = timePBs[seconds] || [];
+                    const best = entries[0];
+                    typingStats[seconds].textContent = best?.wpm ? `${Math.round(best.wpm)} WPM` : "—";
+                });
+
+                const completed = data?.completedTests;
+                const timeTyping = data?.timeTyping;
+                const parts = [];
+
+                if (typeof completed === "number") {
+                    parts.push(`${completed.toLocaleString("fr-FR")} tests`);
+                }
+
+                if (typeof timeTyping === "number") {
+                    const totalSeconds = Math.round(timeTyping);
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    parts.push(`${hours}h ${String(minutes).padStart(2, "0")}m`);
+                }
+
+                typingTotal.textContent = parts.length ? parts.join(" · ") : "Profil Monkeytype";
+            })
+            .catch(() => {
+                typingTotal.textContent = "Voir le profil Monkeytype →";
+            });
+    </script>
 
 </body>
 </html>
