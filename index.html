@@ -260,7 +260,11 @@
                 typingCard.setAttribute("aria-expanded", String(expanded));
             };
 
-            typingCard.addEventListener("click", toggleTypingCard);
+            typingCard.addEventListener("click", event => {
+                event.preventDefault();
+                event.stopPropagation();
+                toggleTypingCard();
+            });
             typingCard.addEventListener("keydown", event => {
                 if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
