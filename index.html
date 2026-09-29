@@ -108,11 +108,13 @@
             overflow: hidden;
         }
 
-        .typing-card:hover {
-            width: min(430px, 90vw);
-            transform: translateY(-2px);
-            background: rgba(184, 139, 208, 0.09);
-            box-shadow: 0 0 24px rgba(184, 139, 208, 0.2), inset 0 0 15px rgba(184, 139, 208, 0.04);
+        @media (hover: hover) and (pointer: fine) {
+            .typing-card:hover {
+                width: min(430px, 90vw);
+                transform: translateY(-2px);
+                background: rgba(184, 139, 208, 0.09);
+                box-shadow: 0 0 24px rgba(184, 139, 208, 0.2), inset 0 0 15px rgba(184, 139, 208, 0.04);
+            }
         }
 
         .typing-title {
@@ -132,10 +134,12 @@
             transition: max-height 0.3s ease, margin-top 0.3s ease, opacity 0.25s ease;
         }
 
-        .typing-card:hover .typing-stats {
-            max-height: 120px;
-            margin-top: 18px;
-            opacity: 1;
+        @media (hover: hover) and (pointer: fine) {
+            .typing-card:hover .typing-stats {
+                max-height: 120px;
+                margin-top: 18px;
+                opacity: 1;
+            }
         }
 
         .typing-stat {
