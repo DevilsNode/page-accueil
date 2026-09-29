@@ -108,8 +108,7 @@
             overflow: hidden;
         }
 
-        .typing-card:hover,
-        .typing-card:focus-visible {
+        .typing-card:hover {
             width: min(430px, 90vw);
             transform: translateY(-2px);
             background: rgba(184, 139, 208, 0.09);
@@ -133,32 +132,10 @@
             transition: max-height 0.3s ease, margin-top 0.3s ease, opacity 0.25s ease;
         }
 
-        .typing-card:hover .typing-stats,
-        .typing-card:focus-visible .typing-stats {
+        .typing-card:hover .typing-stats {
             max-height: 120px;
             margin-top: 18px;
             opacity: 1;
-        }
-
-        /* Sur mobile : un tap sur la partie haute ouvre/ferme les stats.
-           La partie basse reste un lien vers Monkeytype. */
-        @media (hover: none) and (pointer: coarse) {
-            .typing-card.mobile-open {
-                width: min(430px, 90vw);
-                transform: translateY(-2px);
-                background: rgba(184, 139, 208, 0.09);
-                box-shadow: 0 0 24px rgba(184, 139, 208, 0.2), inset 0 0 15px rgba(184, 139, 208, 0.04);
-            }
-
-            .typing-card.mobile-open .typing-stats {
-                max-height: 120px;
-                margin-top: 18px;
-                opacity: 1;
-            }
-
-            .typing-card.mobile-open .typing-title {
-                cursor: pointer;
-            }
         }
 
         .typing-stat {
@@ -188,9 +165,17 @@
         }
 
         @media (max-width: 520px) {
-            .typing-card:hover,
-            .typing-card:focus-visible {
+            .typing-card.is-expanded {
                 width: min(90vw, 430px);
+                transform: translateY(-2px);
+                background: rgba(184, 139, 208, 0.09);
+                box-shadow: 0 0 24px rgba(184, 139, 208, 0.2), inset 0 0 15px rgba(184, 139, 208, 0.04);
+            }
+
+            .typing-card.is-expanded .typing-stats {
+                max-height: 120px;
+                margin-top: 18px;
+                opacity: 1;
             }
 
             .typing-stats {
@@ -224,11 +209,10 @@
             CV en ligne
         </a>
 
-        <a
+        <div
             class="typing-card"
-            href="https://monkeytype.com/profile/devilsnode"
-            target="_blank"
-            rel="noopener noreferrer"
+            role="button"
+            tabindex="0"
             aria-expanded="false"
         >
             <div class="typing-title">Dactylo</div>
@@ -252,7 +236,7 @@
                 </div>
                 <div class="typing-extra" id="typing-total">Chargement des statistiques…</div>
             </div>
-        </a>
+        </div>
     </main>
 
 
@@ -265,18 +249,22 @@
         };
         const typingTotal = document.getElementById("typing-total");
         const typingCard = document.querySelector(".typing-card");
-        const typingTitle = document.querySelector(".typing-title");
 
-        // Sur mobile : moitié haute = ouvrir/fermer, moitié basse = lien Monkeytype.
-        if (window.matchMedia("(hover: none) and (pointer: coarse)").matches) {
-            typingCard.addEventListener("click", event => {
-                const rect = typingCard.getBoundingClientRect();
-                const middle = rect.top + rect.height / 2;
+        // PC : ouverture uniquement au survol (CSS).
+        // Mobile : un tap bascule entre fermé et ouvert.
+        const isTouchDevice = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 
-                if (event.clientY <= middle) {
+        if (isTouchDevice) {
+            const toggleTypingCard = () => {
+                const expanded = typingCard.classList.toggle("is-expanded");
+                typingCard.setAttribute("aria-expanded", String(expanded));
+            };
+
+            typingCard.addEventListener("click", toggleTypingCard);
+            typingCard.addEventListener("keydown", event => {
+                if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    const open = typingCard.classList.toggle("mobile-open");
-                    typingCard.setAttribute("aria-expanded", String(open));
+                    toggleTypingCard();
                 }
             });
         }
@@ -313,7 +301,7 @@
                 typingTotal.textContent = parts.length ? parts.join(" · ") : "Profil Monkeytype";
             })
             .catch(() => {
-                typingTotal.textContent = "Voir le profil Monkeytype →";
+                typingTotal.textContent = "Statistiques indisponibles";
             });
     </script>
 
